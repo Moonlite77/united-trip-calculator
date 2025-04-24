@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 
-// Define the form schema with explicit required fields
+// Define the form schema
 const formSchema = z.object({
   internationalTrip: z.boolean(),
   seniorityYears: z.coerce.number().min(0, "Seniority years must be a positive number"),
@@ -27,24 +27,12 @@ const formSchema = z.object({
   position: z.enum(["Speaker", "Galley", "Purser"]),
   isMexicoCaribbean: z.boolean(),
   nightPayHours: z.coerce.number().min(0, "Night pay hours must be a positive number"),
-  // These are truly optional fields
   aircraft: z.string().optional(),
   hoursInWidebody: z.coerce.number().min(0, "Hours in widebody must be a positive number").optional(),
 })
 
-// Define the type explicitly to match the schema
-type FormValues = {
-  internationalTrip: boolean
-  seniorityYears: number
-  tafb: number
-  hourlyRate: number
-  credit: number
-  position: "Speaker" | "Galley" | "Purser"
-  isMexicoCaribbean: boolean
-  nightPayHours: number
-  aircraft?: string
-  hoursInWidebody?: number
-}
+// Use the inferred type from the schema
+type FormValues = z.infer<typeof formSchema>
 
 const aircraftOptions = [
   { value: "A319", label: "A319" },
@@ -66,8 +54,8 @@ export function TripCalculator() {
     totalTripValue: number
   } | null>(null)
 
-  // Use the explicit FormValues type
-  const form = useForm<FormValues>({
+  // Create the form without specifying the generic type
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       internationalTrip: false,
@@ -75,10 +63,10 @@ export function TripCalculator() {
       tafb: 0,
       hourlyRate: 0,
       credit: 0,
-      position: "Speaker",
+      position: "Speaker" as const,
       isMexicoCaribbean: false,
-      hoursInWidebody: 0,
       nightPayHours: 0,
+      hoursInWidebody: 0,
     },
   })
 
@@ -136,8 +124,8 @@ export function TripCalculator() {
     }
   }
 
-  function onSubmit(values: FormValues) {
-    const calculationResults = calculateTripValue(values)
+  function onSubmit(values: any) {
+    const calculationResults = calculateTripValue(values as FormValues)
     setResults(calculationResults)
   }
 
