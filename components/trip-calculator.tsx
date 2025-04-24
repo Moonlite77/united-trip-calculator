@@ -17,22 +17,34 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 
-// Define the form schema
+// Define the form schema with explicit required fields
 const formSchema = z.object({
-  internationalTrip: z.boolean().default(false),
+  internationalTrip: z.boolean(),
   seniorityYears: z.coerce.number().min(0, "Seniority years must be a positive number"),
   tafb: z.coerce.number().min(0, "TAFB must be a positive number"),
   hourlyRate: z.coerce.number().min(0, "Hourly rate must be a positive number"),
   credit: z.coerce.number().min(0, "Credit hours must be a positive number"),
   position: z.enum(["Speaker", "Galley", "Purser"]),
-  aircraft: z.string().optional(),
-  isMexicoCaribbean: z.boolean().default(false),
-  hoursInWidebody: z.coerce.number().min(0, "Hours in widebody must be a positive number").optional(),
+  isMexicoCaribbean: z.boolean(),
   nightPayHours: z.coerce.number().min(0, "Night pay hours must be a positive number"),
+  // These are truly optional fields
+  aircraft: z.string().optional(),
+  hoursInWidebody: z.coerce.number().min(0, "Hours in widebody must be a positive number").optional(),
 })
 
-// Define the type for our form
-type FormValues = z.infer<typeof formSchema>
+// Define the type explicitly to match the schema
+type FormValues = {
+  internationalTrip: boolean
+  seniorityYears: number
+  tafb: number
+  hourlyRate: number
+  credit: number
+  position: "Speaker" | "Galley" | "Purser"
+  isMexicoCaribbean: boolean
+  nightPayHours: number
+  aircraft?: string
+  hoursInWidebody?: number
+}
 
 const aircraftOptions = [
   { value: "A319", label: "A319" },
@@ -54,7 +66,7 @@ export function TripCalculator() {
     totalTripValue: number
   } | null>(null)
 
-  // Fix: Explicitly type the form with FormValues
+  // Use the explicit FormValues type
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -124,7 +136,6 @@ export function TripCalculator() {
     }
   }
 
-  // Fix: Explicitly type the onSubmit function
   function onSubmit(values: FormValues) {
     const calculationResults = calculateTripValue(values)
     setResults(calculationResults)
